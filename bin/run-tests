@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -e
+
+args=()
+eoo=0
+tags=()
+
+kind="$1"
+shift
+
+while [[ $1 ]]
+do
+  if ! ((eoo)); then
+    case "$1" in
+      @*)
+          tags+=("$1")
+          shift
+          ;;
+      ~@*)
+          tags+=("$1")
+          shift
+          ;;
+      --)
+          eoo=1
+          args+=("$1")
+          shift
+          ;;
+      *)
+          args+=("$1")
+          shift
+          ;;
+    esac
+  else
+    args+=("$1")
+    # Another (worse) way of doing the same thing:
+    # args=("${args[@]}" "$1")
+    shift
+  fi
+done
+
+function join { local IFS="$1"; shift; echo "$*"; }
+
+export TAGS="$(join " " "${tags[@]}")"
+exec protractor /config/${kind}.js "${args[@]}"
